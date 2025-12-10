@@ -1,7 +1,7 @@
 {
   "name": "patch-report-checking-automation",
   "version": "1.0.0",
-  "description": "",
+  "description": "Aplikasi untuk automasi checking report",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/ssaputralo/automation-rcu-infra.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Supandi Saputra",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
