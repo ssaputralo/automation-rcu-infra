@@ -1,15 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello Electron</title>
-    <style>
-        body { background-color: #f0f0f0; font-family: sans-serif; text-align: center; }
-        h1 { color: #007acc; }
-    </style>
+    <title>Patch Report Checking Automation</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Aplikasi Desktop Pertamaku!</h1>
-    <p>Ini berjalan di atas Electron.</p>
-    <button onclick="alert('Tombol diklikkk!')">Klik Saya</button>
+    <div id="app">
+        <h1>Patch Report Checking Automation</h1>
+        <p>Ini berjalan di atas Electron.</p>
+
+        <div class="upload-container">
+            <upload-box ref="file1" label="Upload File 1"
+                        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        :filename="file1Name" :invalid="invalid1"
+                        @file="onSelected('file1', $event)"></upload-box>
+
+            <upload-box ref="file2" label="Upload File 2"
+                        accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        :filename="file2Name" :invalid="invalid2"
+                        @file="onSelected('file2', $event)"></upload-box>
+        </div>
+
+        <div class="actions">
+            <button :disabled="!canSubmit || submitting" @click="submitFiles">{{ submitting ? 'Submitting...' : 'Submit' }}</button>
+            <button v-if="submitting" @click="cancelUpload">Cancel</button>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-wrap" v-if="submitting || progressPercent > 0">
+            <div class="progress-bar" role="progressbar" :aria-valuenow="progressPercent" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+            </div>
+            <div class="progress-label">{{ progressPercent }}%</div>
+        </div>
+
+        <!-- Toast notifications (inside Vue app) -->
+        <div class="toast-container">
+            <div v-for="n in notifications" :key="n.id" :class="['toast', n.type]">{{ n.message }}</div>
+        </div>
+    </div>
+
+    <!-- Vue 3 via CDN -->
+    <!-- Vue is imported as ESM in renderer/main.js for a modular frontend -->
+    <script type="module" src="renderer/main.js"></script>
 </body>
 </html>
