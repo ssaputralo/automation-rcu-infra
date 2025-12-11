@@ -154,3 +154,24 @@ ipcMain.handle('upload-files', async (event, { files, uploadUrl }) => {
     return { ok: false, error: err.message };
   }
 });
+
+// Window control handlers for frameless window (minimize/maximize/close)
+ipcMain.handle('window-minimize', () => {
+  try { if (win) win.minimize(); return { ok: true }; } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('window-close', () => {
+  try { if (win) win.close(); return { ok: true }; } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('window-toggle-maximize', () => {
+  try {
+    if (!win) return { ok: false, error: 'No window' };
+    if (win.isMaximized()) win.unmaximize(); else win.maximize();
+    return { ok: true, isMaximized: win.isMaximized() };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('window-is-maximized', () => {
+  try { return { ok: true, isMaximized: win ? win.isMaximized() : false }; } catch (e) { return { ok: false, error: e.message }; }
+});

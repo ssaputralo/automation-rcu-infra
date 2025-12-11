@@ -3,7 +3,8 @@ export default {
   props: {
     label: { type: String, default: 'Upload' },
     accept: { type: String, default: '' },
-    filename: { type: String, default: 'Belum ada file dipilih' },
+    filename: { type: String, default: 'No file selected' },
+    icon: { type: String, default: 'fa fa-file' },
     invalid: { type: Boolean, default: false }
   },
   template: `
@@ -12,10 +13,10 @@ export default {
          @dragover.prevent="onDragOver"
          @dragleave.prevent="onDragLeave"
          @drop.prevent="onDrop">
-      <label>{{ label }}</label>
-      <div class="upload-hint">Klik untuk memilih file atau seret ke sini</div>
+      <label><i :class="icon + ' box-icon'"></i> {{ label }}</label>
+      <div class="upload-hint">Click to choose a file or drop here</div>
       <input ref="input" type="file" :accept="accept" @change="onChange" style="display:none" />
-      <div class="filename">{{ filename }}</div>
+      <div class="filename"><i class="fa fa-file-alt filename-icon"></i> {{ filename }}</div>
     </div>
   `,
   methods: {

@@ -3,27 +3,39 @@
 <head>
     <title>Patch Report Checking Automation</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div id="app">
+        <div class="top-controls">
+            <button class="theme-btn" @click="toggleTheme" :title="theme==='dark' ? 'Switch to light' : 'Switch to dark'">
+                <i :class="theme==='dark' ? 'fa fa-sun' : 'fa fa-moon'"></i>
+            </button>
+        </div>
         <h1>Patch Report Checking Automation</h1>
-        <p>Ini berjalan di atas Electron.</p>
+        <p class="app-subtitle">Please upload your file to start the process.</p>
 
         <div class="upload-container">
-            <upload-box ref="file1" label="Upload File 1"
-                        accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        :filename="file1Name" :invalid="invalid1"
-                        @file="onSelected('file1', $event)"></upload-box>
+                <upload-box ref="file1" label="Upload Raw Data (Excel)"
+                    icon="fa fa-file-excel"
+                    accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    :filename="file1Name" :invalid="invalid1"
+                    @file="onSelected('file1', $event)"></upload-box>
 
-            <upload-box ref="file2" label="Upload File 2"
-                        accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                        :filename="file2Name" :invalid="invalid2"
-                        @file="onSelected('file2', $event)"></upload-box>
+                <upload-box ref="file2" label="Upload Patch Report (PowerPoint)"
+                    icon="fa fa-file-powerpoint"
+                    accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    :filename="file2Name" :invalid="invalid2"
+                    @file="onSelected('file2', $event)"></upload-box>
         </div>
 
         <div class="actions">
-            <button :disabled="!canSubmit || submitting" @click="submitFiles">{{ submitting ? 'Submitting...' : 'Submit' }}</button>
-            <button v-if="submitting" @click="cancelUpload">Cancel</button>
+            <button class="btn primary" :disabled="!canSubmit || submitting" @click="submitFiles">
+                <i :class="submitting ? 'fa fa-spinner fa-spin' : 'fa fa-paper-plane'"></i>
+                <span>{{ submitting ? 'Submitting...' : 'Submit' }}</span>
+            </button>
+            <button class="btn" v-if="submitting" @click="cancelUpload"><i class="fa fa-times"></i> Cancel</button>
         </div>
 
         <!-- Progress bar -->

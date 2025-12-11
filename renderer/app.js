@@ -12,8 +12,9 @@ export default {
   components: { UploadBox, ToastList, ProgressBar },
   data() {
     return {
-      file1Name: 'Belum ada file dipilih',
-      file2Name: 'Belum ada file dipilih',
+      file1Name: 'No file selected',
+      file2Name: 'No file selected',
+      theme: (localStorage.getItem('theme')) ? localStorage.getItem('theme') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
       invalid1: false,
       invalid2: false,
       notifications: [],
@@ -44,7 +45,7 @@ export default {
       if (!file) { this.clear(slot); return; }
       const allowed = slot === 'file1' ? allowedMap.file1 : allowedMap.file2;
       if (!this.isValidFile(file, allowed)) {
-        this.setInvalid(slot, 'Tipe file tidak didukung');
+        this.setInvalid(slot, 'Unsupported file type');
         // ask child to clear its input
         try { if (this.$refs[slot] && this.$refs[slot].clear) this.$refs[slot].clear(); } catch (e) {}
         return;
@@ -74,12 +75,12 @@ export default {
     clear(slot) {
       if (slot === 'file1') {
         this.invalid1 = false;
-        this.file1Name = 'Belum ada file dipilih';
+        this.file1Name = 'No file selected';
         this.fileObjs.file1 = null;
         try { if (this.$refs.file1 && this.$refs.file1.clear) this.$refs.file1.clear(); } catch (e) {}
       } else {
         this.invalid2 = false;
-        this.file2Name = 'Belum ada file dipilih';
+        this.file2Name = 'No file selected';
         this.fileObjs.file2 = null;
         try { if (this.$refs.file2 && this.$refs.file2.clear) this.$refs.file2.clear(); } catch (e) {}
       }
@@ -94,7 +95,7 @@ export default {
     },
     async submitFiles() {
       if (!this.canSubmit) {
-        this.notify('Pilih kedua file yang valid sebelum submit', 'error');
+        this.notify('Please select two valid files before submitting', 'error');
         return;
       }
 
@@ -120,14 +121,14 @@ export default {
           const res = await window.electronAPI.invoke('upload-files', payload);
           if (res && res.ok) {
             this.progressPercent = 100;
-            this.notify('Upload berhasil (backend memproses tanpa menyimpan)', 'success');
+            this.notify('Upload successful (backend processed without saving)', 'success');
           } else {
-            const msg = (res && (res.error || res.body)) ? (res.error || res.body) : 'Upload gagal';
-            this.notify(`Upload gagal: ${msg}`, 'error');
+            const msg = (res && (res.error || res.body)) ? (res.error || res.body) : 'Upload failed';
+            this.notify(`Upload failed: ${msg}`, 'error');
           }
         } catch (err) {
           console.error('submitFiles (upload via IPC) error', err);
-          this.notify(`Upload gagal: ${err.message}`, 'error');
+          this.notify(`Upload failed: ${err.message}`, 'error');
         } finally {
           setTimeout(() => { this.progressPercent = 0; }, 800);
           this.submitting = false;
@@ -142,15 +143,15 @@ export default {
       try {
         const ab1 = await f1.arrayBuffer();
         const res1 = await window.electronAPI.invoke('save-file', { data: ab1, defaultPath: f1.name, autoSave: true });
-        if (!res1 || !res1.ok) throw new Error((res1 && res1.error) || 'Gagal menyimpan file 1');
+        if (!res1 || !res1.ok) throw new Error((res1 && res1.error) || 'Failed to save file 1');
         const ab2 = await f2.arrayBuffer();
         const res2 = await window.electronAPI.invoke('save-file', { data: ab2, defaultPath: f2.name, autoSave: true });
-        if (!res2 || !res2.ok) throw new Error((res2 && res2.error) || 'Gagal menyimpan file 2');
+        if (!res2 || !res2.ok) throw new Error((res2 && res2.error) || 'Failed to save file 2');
         this.progressPercent = 100;
-        this.notify('File tersimpan lokal (offline)', 'success');
+        this.notify('Files saved locally (offline)', 'success');
       } catch (err) {
         console.error('submitFiles (local save) error', err);
-        this.notify(`Simpan lokal gagal: ${err.message}`, 'error');
+        this.notify(`Local save failed: ${err.message}`, 'error');
       } finally {
         setTimeout(() => { this.progressPercent = 0; }, 800);
         this.submitting = false;
@@ -166,7 +167,18 @@ export default {
       }
       this.submitting = false;
       this.progressPercent = 0;
-      this.notify('Upload dibatalkan', 'info');
+      this.notify('Upload cancelled', 'info');
     }
+    ,
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark';
+      try { document.documentElement.setAttribute('data-theme', this.theme); } catch (e) {}
+      try { localStorage.setItem('theme', this.theme); } catch (e) {}
+    }
+  },
+  mounted() {
+    try {
+      document.documentElement.setAttribute('data-theme', this.theme || 'light');
+    } catch (e) { }
   }
 };
