@@ -12,48 +12,116 @@
 
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
+            <div class="col-md-10 col-lg-8">
                 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="text-primary mb-0"><i class="fa fa-robot me-2"></i>Patch Automation</h4>
-                    <button id="btnTheme" class="btn btn-outline-secondary btn-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+                    <h4 class="text-primary mb-0 fw-bold"><i class="fa fa-robot me-2"></i>Patch Automation</h4>
+                    <button id="btnTheme" class="btn btn-outline-secondary btn-sm rounded-circle" style="width: 32px; height: 32px; padding: 0;">
                         <i class="fa fa-moon"></i>
                     </button>
                 </div>
 
-                <div class="card shadow-sm border-0">
-                    <div class="card-body p-4">
-                        <p class="text-muted text-center mb-4">Silakan unggah file yang diperlukan untuk memulai proses.</p>
-
-                        <form id="uploadForm">
-                            <div class="mb-3">
-                                <label for="fileRaw" class="form-label fw-bold">
-                                    <i class="fa fa-file-excel text-success me-1"></i> Upload Raw Data (Excel)
-                                </label>
-                                <input class="form-control" type="file" id="fileRaw" accept=".xls,.xlsx">
+                <div id="uploadSection" class="fade-in">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <div class="text-center mb-4">
+                                <h5 class="fw-bold">Upload Files</h5>
+                                <p class="text-muted small">Silakan unggah file Excel dan PPT Anda untuk diproses.</p>
                             </div>
 
-                            <div class="mb-4">
-                                <label for="filePatch" class="form-label fw-bold">
-                                    <i class="fa fa-file-powerpoint text-danger me-1"></i> Upload Patch Report (PPT)
-                                </label>
-                                <input class="form-control" type="file" id="filePatch" accept=".ppt,.pptx">
-                            </div>
+                            <form id="uploadForm">
+                                <div class="mb-3">
+                                    <label for="fileRaw" class="form-label fw-semibold small text-uppercase text-secondary">
+                                        <i class="fa fa-file-excel text-success me-1"></i> Raw Data
+                                    </label>
+                                    <input class="form-control custom-file-input" type="file" id="fileRaw" accept=".xls,.xlsx">
+                                </div>
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary" disabled>
-                                    <i class="fa fa-paper-plane me-1"></i> Submit Files
-                                </button>
-                            </div>
-                        </form>
+                                <div class="mb-4">
+                                    <label for="filePatch" class="form-label fw-semibold small text-uppercase text-secondary">
+                                        <i class="fa fa-file-powerpoint text-danger me-1"></i> Patch Report
+                                    </label>
+                                    <input class="form-control custom-file-input" type="file" id="filePatch" accept=".ppt,.pptx">
+                                </div>
 
-                        <div id="progressContainer" class="mt-4 d-none">
-                            <label class="small text-muted mb-1">Processing...</label>
-                            <div class="progress" role="progressbar">
-                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" id="btnSubmit" class="btn btn-primary py-2 fw-bold" disabled>
+                                        <i class="fa fa-paper-plane me-1"></i> Submit Files
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div id="progressContainer" class="mt-4 d-none">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Processing...</span>
+                                    <span id="progressText">0%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
+                <div id="overviewSection" class="d-none">
+                    <div class="card shadow-sm border-0 fade-in">
+                        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fs-6"><i class="fa fa-chart-pie me-2"></i>Overview Result</h5>
+                            <span class="badge bg-white text-primary rounded-pill">Draft</span>
+                        </div>
+                        <div class="card-body p-4">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="p-3 file-detail-card h-100">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-success bg-opacity-10 text-success rounded p-2 me-3">
+                                                <i class="fa fa-file-excel fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-success">Raw Data</h6>
+                                                <small class="text-muted" id="displayRawSize">-</small>
+                                            </div>
+                                        </div>
+                                        <p class="small text-muted mb-2 text-truncate" id="displayRawName" title="">-</p>
+                                        
+                                        <div id="contentRaw" class="content-placeholder small">
+                                            (Preview data Excel...)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="p-3 file-detail-card h-100">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-danger bg-opacity-10 text-danger rounded p-2 me-3">
+                                                <i class="fa fa-file-powerpoint fa-lg"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-danger">Patch Report</h6>
+                                                <small class="text-muted" id="displayPatchSize">-</small>
+                                            </div>
+                                        </div>
+                                        <p class="small text-muted mb-2 text-truncate" id="displayPatchName" title="">-</p>
+                                        
+                                        <div id="contentPatch" class="content-placeholder small">
+                                            (Preview slide PPT...)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top text-end">
+                                <button id="btnReset" class="btn btn-outline-secondary me-2">
+                                    <i class="fa fa-arrow-left me-1"></i> Upload Again
+                                </button>
+                                <button id="btnProcessNext" class="btn btn-success fw-bold">
+                                    Next Process <i class="fa fa-arrow-right ms-1"></i>
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
 
