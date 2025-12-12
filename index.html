@@ -1,59 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="id" data-bs-theme="light">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patch Report Checking Automation</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Font Awesome for icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div id="app">
-        <div class="top-controls">
-            <button class="theme-btn" @click="toggleTheme" :title="theme==='dark' ? 'Switch to light' : 'Switch to dark'">
-                <i :class="theme==='dark' ? 'fa fa-sun' : 'fa fa-moon'"></i>
-            </button>
-        </div>
-        <h1>Patch Report Checking Automation</h1>
-        <p class="app-subtitle">Please upload your file to start the process.</p>
+<body class="bg-light">
 
-        <div class="upload-container">
-                <upload-box ref="file1" label="Upload Raw Data (Excel)"
-                    icon="fa fa-file-excel"
-                    accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    :filename="file1Name" :invalid="invalid1"
-                    @file="onSelected('file1', $event)"></upload-box>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="text-primary mb-0"><i class="fa fa-robot me-2"></i>Patch Automation</h4>
+                    <button id="btnTheme" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa fa-moon"></i>
+                    </button>
+                </div>
 
-                <upload-box ref="file2" label="Upload Patch Report (PowerPoint)"
-                    icon="fa fa-file-powerpoint"
-                    accept=".ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                    :filename="file2Name" :invalid="invalid2"
-                    @file="onSelected('file2', $event)"></upload-box>
-        </div>
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <p class="text-muted text-center mb-4">Silakan unggah file yang diperlukan untuk memulai proses.</p>
 
-        <div class="actions">
-            <button class="btn primary" :disabled="!canSubmit || submitting" @click="submitFiles">
-                <i :class="submitting ? 'fa fa-spinner fa-spin' : 'fa fa-paper-plane'"></i>
-                <span>{{ submitting ? 'Submitting...' : 'Submit' }}</span>
-            </button>
-            <button class="btn" v-if="submitting" @click="cancelUpload"><i class="fa fa-times"></i> Cancel</button>
-        </div>
+                        <form id="uploadForm">
+                            <div class="mb-3">
+                                <label for="fileRaw" class="form-label fw-bold">
+                                    <i class="fa fa-file-excel text-success me-1"></i> Upload Raw Data (Excel)
+                                </label>
+                                <input class="form-control" type="file" id="fileRaw" accept=".xls,.xlsx">
+                            </div>
 
-        <!-- Progress bar -->
-        <div class="progress-wrap" v-if="submitting || progressPercent > 0">
-            <div class="progress-bar" role="progressbar" :aria-valuenow="progressPercent" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+                            <div class="mb-4">
+                                <label for="filePatch" class="form-label fw-bold">
+                                    <i class="fa fa-file-powerpoint text-danger me-1"></i> Upload Patch Report (PPT)
+                                </label>
+                                <input class="form-control" type="file" id="filePatch" accept=".ppt,.pptx">
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" id="btnSubmit" class="btn btn-primary" disabled>
+                                    <i class="fa fa-paper-plane me-1"></i> Submit Files
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="progressContainer" class="mt-4 d-none">
+                            <label class="small text-muted mb-1">Processing...</label>
+                            <div class="progress" role="progressbar">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%">0%</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="alertArea" class="mt-3"></div>
+
             </div>
-            <div class="progress-label">{{ progressPercent }}%</div>
-        </div>
-
-        <!-- Toast notifications (inside Vue app) -->
-        <div class="toast-container">
-            <div v-for="n in notifications" :key="n.id" :class="['toast', n.type]">{{ n.message }}</div>
         </div>
     </div>
 
-    <!-- Vue 3 via CDN -->
-    <!-- Vue is imported as ESM in renderer/main.js for a modular frontend -->
-    <script type="module" src="renderer/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="renderer.js"></script>
 </body>
 </html>

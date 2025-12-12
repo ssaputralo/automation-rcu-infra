@@ -1,128 +1,21 @@
-/* Glassmorphism styles (iOS-like frosted glass) */
-:root{
-	--bg-1: linear-gradient(135deg,#f3f7ff 0%, #fbfcff 100%);
-	--panel-bg: rgba(255,255,255,0.18);
-	--panel-border: rgba(255,255,255,0.35);
-	--muted: rgba(15,23,42,0.6);
-	--title-color: #0b63a3;
-	--ui-text: #ffffff; /* light mode: UI text (text remains white) */
-	--icon-color: #1c6fb5; /* light mode: icons use darker blue for contrast */
-	--text-color: var(--ui-text);
-	--filename-color: #0b63a3;
-	--toolbar-bg: rgba(255,255,255,0.06);
-	--accent-start: #56a0ff;
-	--accent-end: #7be6b5;
-	--glass-shadow: 0 10px 36px rgba(16,24,40,0.08);
-	--btn-text: #ffffff;
-	--btn-text-shadow: none;
-	--btn-bg-start: #2f6fbf;
-	--btn-bg-end: #2f9f88;
+/* Custom Styles overriding Bootstrap where necessary */
+
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Base layout */
-body { background: var(--bg-1); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; text-align: center; -webkit-font-smoothing:antialiased; padding: 32px 18px; }
-.top-controls { position: absolute; right: 20px; top: 18px; }
-h1 { color: var(--title-color); font-size: 36px; margin-bottom: 6px; }
-.app-subtitle { color: var(--muted); }
-.upload-container { display: flex; gap: 20px; justify-content: center; margin: 28px 0; flex-wrap: wrap; }
-
-/* Glass panels (Upload boxes) */
-.upload-box {
-	width: 320px;
-	min-height: 160px;
-	background: var(--panel-bg);
-	border: 1px solid rgba(255,255,255,0.24);
-	backdrop-filter: blur(10px) saturate(120%);
-	-webkit-backdrop-filter: blur(10px) saturate(120%);
-	border-radius: 14px;
-	display: flex; align-items: center; justify-content: center; flex-direction: column;
-	padding: 18px; box-shadow: var(--glass-shadow);
-	transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-}
-.upload-box:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(16,24,40,0.12); border-color: rgba(255,255,255,0.4); }
-.upload-box.invalid { border-color: rgba(229,83,83,0.6); box-shadow: 0 8px 30px rgba(229,83,83,0.06); }
-
-.upload-box label { cursor: pointer; color: var(--muted); font-weight: 700; display:flex; align-items:center; gap:10px; }
-.upload-hint { color: var(--muted); font-size: 13px; margin-top: 8px; }
-.filename { margin-top: 10px; font-size: 13px; color: var(--filename-color); word-break: break-all; display:flex; align-items:center; justify-content:center; gap:8px; }
-
-/* Icon styles inside upload box */
-.upload-box .box-icon { font-size: 38px; color: #1c6fb5; margin-right: 4px; vertical-align: middle; transition: transform 180ms ease; }
-.upload-box:hover .box-icon { transform: translateY(-4px) scale(1.04); }
-.upload-box .filename-icon { margin-right: 6px; color: #0b63a3; }
-
-/* Theme toggle control */
-.top-controls { position: absolute; right: 20px; top: 18px; }
-.theme-btn { background: var(--toolbar-bg); border: 1px solid var(--panel-border); padding: 8px; border-radius: 10px; cursor: pointer; display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; transition: transform 160ms ease, background 160ms ease; }
-.theme-btn i { font-size: 16px; color: var(--icon-color); }
-.theme-btn:hover { transform: translateY(-3px); background: rgba(255,255,255,0.10); }
-
-/* Dark theme overrides */
-@media (prefers-color-scheme: dark) {
-	:root { --bg-1: linear-gradient(135deg,#0f1724 0%, #071027 100%); }
+/* Biar card terlihat bagus saat dark mode */
+[data-bs-theme="dark"] .card {
+    background-color: #1f2937;
+    border: 1px solid #374151;
 }
 
-/* explicit dark theme */
-:root[data-theme='dark'], [data-theme='dark'] {
-	--bg-1: linear-gradient(135deg,#071027 0%, #0f1724 100%);
-	--panel-bg: rgba(10,12,18,0.48);
-	--panel-border: rgba(255,255,255,0.06);
-	--muted: rgba(255,255,255,0.78);
-	--title-color: #62b0e8;
-	/* Use darker UI text/icons in dark theme, and lighter button bg */
-	--ui-text: #0b2a3a;
-	--icon-color: #1c6fb5; /* keep icons blue in dark mode for contrast */
-	--text-color: var(--ui-text);
-	--filename-color: #66b0e6;
-	--toolbar-bg: rgba(255,255,255,0.04);
-	--btn-text: #052b2b; /* button text becomes dark when its bg is light */
-	--btn-text-shadow: none;
-	--btn-bg-start: #56a0ff; /* lighter button bg in dark mode */
-	--btn-bg-end: #7be6b5;
-	--accent-start: #7be6ff;
-	--accent-end: #6adfb3;
+/* Animasi progress bar lebih halus */
+.progress-bar {
+    transition: width 0.6s ease;
 }
 
-/* toolbar appearance */
-.top-controls { background: var(--toolbar-bg); padding: 6px; border-radius: 12px; border: 1px solid var(--panel-border); backdrop-filter: blur(6px); box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
-
-/* subtitle color */
-.app-subtitle { color: var(--muted); margin-top: 8px; }
-
-/* small micro-interactions */
-.btn i { transition: transform 200ms ease; }
-.btn:active i { transform: translateY(1px) scale(0.98); }
-.upload-box { will-change: transform, box-shadow; }
-.toast { animation: toastIn 260ms cubic-bezier(.2,.9,.2,1); }
-@keyframes toastIn { from { transform: translateY(-8px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
-
-/* Toast styles (frosted) */
-.toast-container { position: fixed; right: 18px; top: 18px; display: flex; flex-direction: column; gap: 10px; z-index: 9999; }
-.toast {
-	min-width: 220px; padding: 12px 16px; border-radius: 12px; color: #fff; box-shadow: 0 8px 20px rgba(2,6,23,0.12); font-size: 14px; display:flex; align-items:center; gap:10px;
-	background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(6px);
+/* Style input file bootstrap biar lebih tinggi sedikit */
+.form-control[type="file"] {
+    padding: 0.5rem;
 }
-.toast.info { color:#0b63a3; background: linear-gradient(90deg, rgba(79,135,238,0.12), rgba(79,135,238,0.08)); border-color: rgba(79,135,238,0.12); }
-.toast.success { color:#0b7b3a; background: linear-gradient(90deg, rgba(43,191,91,0.10), rgba(43,191,91,0.06)); border-color: rgba(43,191,91,0.12); }
-.toast.error { color:#8b2b2b; background: linear-gradient(90deg, rgba(229,83,83,0.12), rgba(229,83,83,0.06)); border-color: rgba(229,83,83,0.12); }
-.toast .toast-icon { font-size: 18px; }
-
-.upload-box input[type=file] { display: none; }
-.progress-wrap { margin-top: 18px; display:flex; align-items:center; gap:12px; justify-content:center; }
-.progress-bar { width: 460px; height: 14px; background: rgba(255,255,255,0.06); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); }
-.progress-fill { height: 100%; background: linear-gradient(90deg,var(--accent-start),var(--accent-end)); width: 0%; transition: width 200ms linear; box-shadow: 0 6px 18px rgba(82,156,255,0.12); }
-.progress-label { font-size: 13px; color: var(--muted); }
-
-.actions { display:flex; gap:12px; justify-content:center; margin-top:18px; }
-.actions i { margin-right: 8px; }
-/* Button styling (glass) */
-.btn { display:inline-flex; align-items:center; gap:10px; padding:10px 16px; border-radius:10px; border:1px solid transparent; background: rgba(255,255,255,0.06); color:var(--text-color); cursor:pointer; box-shadow: 0 6px 16px rgba(2,6,23,0.06); transition:all 180ms ease; backdrop-filter: blur(6px); }
-.btn:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(2,6,23,0.10); }
-.btn.primary { background: linear-gradient(135deg,var(--btn-bg-start),var(--btn-bg-end)); color: var(--btn-text); border-color: rgba(255,255,255,0.06); font-weight: 600; text-shadow: var(--btn-text-shadow); }
-.btn.primary i { color: var(--btn-text); }
-.btn[disabled], .btn[disabled]:hover { opacity:0.6; cursor:not-allowed; transform:none; box-shadow:none; }
-
-/* small refinement for upload icons */
-.upload-box .box-icon { font-size: 36px; color: var(--icon-color); margin-right: 8px; vertical-align: middle; }
-.upload-box:hover .box-icon { transform: translateY(-4px) scale(1.03); }
-.upload-box .filename-icon { margin-right: 6px; color: var(--icon-color); }
