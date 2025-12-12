@@ -22,7 +22,7 @@ const btnBackToOverview = document.getElementById('btnBackToOverview');
 
 let comparisonResults = [];
 
-// --- HELPER: Read File Browser-Side ---
+// --- HELPER: Read File ---
 function readFileAsArrayBuffer(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -32,86 +32,107 @@ function readFileAsArrayBuffer(file) {
     });
 }
 
-// --- LOGIC 1: EKSTRAK PPT (Per Slide) ---
-async function extractSlidesFromPPT(arrayBuffer) {
+// --- LOGIC 1: EKSTRAK PPT + OCR ---
+async function extractSlidesWithOCR(arrayBuffer) {
     const zip = new JSZip();
     const content = await zip.loadAsync(arrayBuffer);
     
     let slidesData = []; 
 
-    // Filter file XML slide
     const slideFiles = Object.keys(content.files).filter(fileName => 
         fileName.startsWith("ppt/slides/slide") && fileName.endsWith(".xml")
     );
 
+    const totalSlides = slideFiles.length;
+    let processedSlides = 0;
+
     for (const fileName of slideFiles) {
-        // Ambil nomor slide
         const matchNumber = fileName.match(/slide(\d+)\.xml/);
         const slideNum = matchNumber ? parseInt(matchNumber[1]) : 0;
-
-        const slideXml = await content.files[fileName].async("string");
         
-        let slideText = "";
-        // Regex menangkap teks di dalam tag <a:t>
+        processedSlides++;
+        const percent = 30 + Math.floor((processedSlides / totalSlides) * 40); 
+        progressBar.style.width = `${percent}%`;
+        progressText.innerText = `${percent}%`;
+        progressLabel.innerText = `Scanning Slide ${slideNum}/${totalSlides} (OCR)...`;
+
+        // 1. Ambil Text XML
+        const slideXml = await content.files[fileName].async("string");
+        let combinedText = "";
+        
         const matches = slideXml.match(/<a:t>(.*?)<\/a:t>/g);
         if (matches) {
             matches.forEach(m => {
                 const text = m.replace(/<\/?a:t>/g, ""); 
-                // Kita simpan lowercase untuk searching, tapi data asli slideText biarkan dulu
-                slideText += " " + text.toLowerCase(); 
+                combinedText += " " + text.toLowerCase(); 
             });
+        }
+
+        // 2. OCR Gambar (Jika ada)
+        const relsFileName = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+        const relsFile = content.files[relsFileName];
+
+        if (relsFile) {
+            const relsXml = await relsFile.async("string");
+            const imageMatches = relsXml.match(/Target="\.\.\/media\/(.*?)"/g);
+            
+            if (imageMatches) {
+                for (const imgTag of imageMatches) {
+                    const imgName = imgTag.replace('Target="../media/', '').replace('"', '');
+                    const imgPath = `ppt/media/${imgName}`;
+                    
+                    if (content.files[imgPath]) {
+                        try {
+                            const imgBlob = await content.files[imgPath].async("blob");
+                            // OCR (English)
+                            const { data: { text } } = await Tesseract.recognize(imgBlob, 'eng');
+                            combinedText += " " + text.toLowerCase();
+                        } catch (err) {
+                            console.warn(`OCR Failed for ${imgName}`, err);
+                        }
+                    }
+                }
+            }
         }
 
         slidesData.push({
             slideNum: slideNum,
-            text: slideText
+            text: combinedText
         });
     }
     return slidesData;
 }
 
-// --- LOGIC 2: EKSTRAK EXCEL (SEMUA SHEET & SEMUA CELL) ---
+// --- LOGIC 2: EKSTRAK EXCEL ---
 function extractDataFromExcel(arrayBuffer) {
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    
-    let allItems = [];
+    let cellItems = [];
 
-    // LOOP SEMUA SHEET YANG ADA DI EXCEL
     workbook.SheetNames.forEach(sheetName => {
         const worksheet = workbook.Sheets[sheetName];
-        
-        // Cek range data
-        if (!worksheet['!ref']) return; // Skip sheet kosong
+        if (!worksheet['!ref']) return;
         const range = XLSX.utils.decode_range(worksheet['!ref']);
         
-        // Loop Baris (R)
         for (let R = range.s.r; R <= range.e.r; ++R) {
-            
-            // Loop Kolom (C)
+            // Kita baca Header juga agar tidak ada kata yang terlewat
             for (let C = range.s.c; C <= range.e.c; ++C) {
-                
-                const cellAddress = {c:C, r:R}; 
-                const cellRef = XLSX.utils.encode_cell(cellAddress); // A1, B2...
+                const cellRef = XLSX.utils.encode_cell({c:C, r:R});
                 const cell = worksheet[cellRef];
 
-                // Ambil nilai jika cell tidak kosong
-                // Kita gunakan String() agar angka/tanggal tetap terbaca sebagai teks
                 if (cell && cell.v !== undefined && cell.v !== null) {
                     const rawValue = String(cell.v).trim();
-                    
                     if (rawValue !== "") {
-                        allItems.push({
+                        cellItems.push({
                             value: rawValue,
-                            sheet: sheetName, // Nama Tab
-                            cell: cellRef     // Alamat Cell
+                            sheet: sheetName,
+                            cell: cellRef
                         });
                     }
                 }
             }
         }
     });
-
-    return allItems;
+    return cellItems;
 }
 
 // --- MAIN PROCESS ---
@@ -131,51 +152,77 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     btnSubmit.disabled = true;
     
     progressContainer.classList.remove('d-none');
-    progressLabel.innerText = "Reading Files...";
-    progressBar.style.width = '10%';
-    progressText.innerText = '10%';
+    progressLabel.innerText = "Reading Excel...";
+    progressBar.style.width = '5%';
+    progressText.innerText = '5%';
 
     try {
         const rawFile = fileRawInput.files[0];
         const patchFile = filePatchInput.files[0];
 
-        // 1. Baca File
         const rawBuffer = await readFileAsArrayBuffer(rawFile);
         const patchBuffer = await readFileAsArrayBuffer(patchFile);
 
-        progressBar.style.width = '40%';
-        progressText.innerText = 'Extracting...';
+        progressBar.style.width = '15%';
+        progressText.innerText = 'Extracting Excel...';
+        
+        // 1. Ekstrak Data Mentah dari Excel
+        const excelCells = extractDataFromExcel(rawBuffer);
 
-        // 2. Ekstrak Data (Mode Lengkap)
-        const excelItems = extractDataFromExcel(rawBuffer);
-        const pptSlides = await extractSlidesFromPPT(patchBuffer);
+        if (excelCells.length === 0) throw new Error("File Excel kosong.");
 
-        if (excelItems.length === 0) {
-            throw new Error("Tidak ditemukan data apapun di file Excel (Semua Sheet kosong).");
-        }
+        // --- NEW LOGIC: PECAH JADI KATA ---
+        progressBar.style.width = '20%';
+        progressLabel.innerText = "Splitting sentences into words...";
+        
+        let allWords = [];
+        excelCells.forEach(item => {
+            // Pecah berdasarkan spasi, enter, atau tanda baca umum (- / _ , .)
+            // Kita ganti tanda baca dengan spasi dulu agar pemisahan bersih
+            const cleanString = item.value.replace(/[\/\-_,.;:()\[\]"']/g, " ");
+            const words = cleanString.split(/\s+/);
 
-        progressBar.style.width = '70%';
-        progressText.innerText = `Checking ${excelItems.length} items...`;
-        progressLabel.innerText = "Comparing...";
+            words.forEach(w => {
+                // Hapus karakter non-alphanumeric di ujung kata (misal: "Patch." -> "Patch")
+                const cleanWord = w.replace(/^[^\w]+|[^\w]+$/g, '');
+                
+                // Filter kata kosong atau terlalu pendek (opsional, disini kita ambil > 1 char)
+                if (cleanWord.length > 1) {
+                    allWords.push({
+                        word: cleanWord,
+                        sheet: item.sheet,
+                        cell: item.cell,
+                        origin: item.value // Simpan asal kalimatnya jika butuh info
+                    });
+                }
+            });
+        });
 
-        await new Promise(r => setTimeout(r, 200)); // Jeda biar UI update
+        // 2. Ekstrak PPT + OCR
+        progressBar.style.width = '30%';
+        progressLabel.innerText = "Scanning PPT & OCR Images...";
+        const pptSlides = await extractSlidesWithOCR(patchBuffer);
 
-        // 3. Bandingkan
+        progressBar.style.width = '80%';
+        progressLabel.innerText = `Comparing ${allWords.length} words...`;
+        progressText.innerText = '80%';
+        
+        await new Promise(r => setTimeout(r, 100));
+
+        // 3. Bandingkan Per KATA
         comparisonResults = [];
         let matchCounter = 0;
         let mismatchCounter = 0;
         
-        excelItems.forEach(excelItem => {
-            // Gunakan lowercase untuk pencarian agar tidak case-sensitive
-            const keyword = excelItem.value.toLowerCase();
-            
-            // Filter keyword pendek agar tidak terlalu "bising" (Opsional)
-            // Jika kata hanya 1 huruf/angka mungkin tidak perlu dicek? 
-            // Untuk sekarang kita cek SEMUANYA.
-
+        allWords.forEach(item => {
+            const keyword = item.word.toLowerCase();
             let foundInSlides = [];
 
             pptSlides.forEach(slide => {
+                // Gunakan RegExp untuk pencocokan kata utuh (Whole Word Match)
+                // agar "Patch" tidak match dengan "Dispatch".
+                // Namun jika ingin loose match, .includes() cukup.
+                // Disini kita pakai .includes() agar lebih toleran pada hasil OCR yang kadang tidak sempurna.
                 if (slide.text.includes(keyword)) {
                     foundInSlides.push(slide.slideNum);
                 }
@@ -184,23 +231,23 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             if (foundInSlides.length > 0) {
                 matchCounter++;
                 comparisonResults.push({
-                    value: excelItem.value,
-                    excelLoc: `${excelItem.sheet}!${excelItem.cell}`,
+                    value: item.word, // Tampilkan KATA-nya
+                    excelLoc: `${item.sheet}!${item.cell}`,
                     pptLoc: `Slide ${foundInSlides.sort((a,b)=>a-b).join(', ')}`,
                     status: 'Match'
                 });
             } else {
                 mismatchCounter++;
                 comparisonResults.push({
-                    value: excelItem.value,
-                    excelLoc: `${excelItem.sheet}!${excelItem.cell}`,
+                    value: item.word,
+                    excelLoc: `${item.sheet}!${item.cell}`,
                     pptLoc: '-',
                     status: 'Mismatch'
                 });
             }
         });
 
-        // 4. Update Summary UI
+        // 4. Update Summary
         countMatch.innerText = matchCounter;
         countMismatch.innerText = mismatchCounter;
 
@@ -225,7 +272,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 function showSummaryPage() {
     uploadSection.classList.add('d-none');
     overviewSection.classList.remove('d-none');
-    
     setTimeout(() => {
         progressContainer.classList.add('d-none');
         progressBar.style.width = '0%';
@@ -237,7 +283,6 @@ function showSummaryPage() {
 
 function renderDetailedTable() {
     findingsTableBody.innerHTML = ''; 
-
     if (comparisonResults.length === 0) {
         findingsTableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No data found.</td></tr>';
         return;
@@ -246,17 +291,16 @@ function renderDetailedTable() {
     comparisonResults.forEach((res, index) => {
         const isMatch = res.status === 'Match';
         const badgeClass = isMatch ? 'bg-success' : 'bg-danger';
-        // Warna text value agar lebih jelas
         const textClass = isMatch ? 'text-dark' : 'text-danger fw-bold';
         const icon = isMatch ? '<i class="fa fa-check"></i>' : '<i class="fa fa-times"></i>';
 
         const row = `
             <tr>
                 <td class="px-3 text-secondary text-center small">${index + 1}</td>
-                <td class="${textClass} text-break" style="min-width: 200px;">
+                <td class="${textClass}" style="font-weight: 500;">
                     ${res.value}
                 </td>
-                <td class="text-secondary small" style="white-space: nowrap;">
+                <td class="text-secondary small">
                     ${res.excelLoc}
                 </td>
                 <td class="text-secondary small">
@@ -273,12 +317,10 @@ function renderDetailedTable() {
     });
 }
 
-// --- NAVIGATION ---
 btnReset.addEventListener('click', () => {
     overviewSection.classList.add('d-none');
     uploadSection.classList.remove('d-none');
     uploadSection.classList.add('fade-in');
-    
     document.getElementById('uploadForm').reset();
     btnSubmit.disabled = true;
 });
