@@ -1,103 +1,31 @@
 /* --- GLOBAL STYLES --- */
 body {
-    transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh;
+    background-color: #f8f9fa !important;
 }
 
-/* Biar Card terlihat konsisten di Dark Mode */
-[data-bs-theme="dark"] .card {
-    background-color: #1f2937; /* Warna abu gelap */
-    border-color: #374151;
-}
-
-/* Animasi Fade In (Untuk perpindahan halaman yang halus) */
 .fade-in {
     animation: fadeInUp 0.5s ease-out forwards;
 }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- SECTION 1: UPLOAD PAGE --- */
-#uploadSection .card {
-    border-top: 4px solid #0d6efd; /* Aksen biru di atas card */
+/* --- UPLOAD SECTION --- */
+#uploadSection .card { border-top: 4px solid #0d6efd; }
+
+/* --- SUMMARY / OVERVIEW STYLES --- */
+.summary-box {
+    transition: transform 0.3s ease;
+}
+.summary-box:hover {
+    transform: translateY(-5px);
+}
+.ls-1 {
+    letter-spacing: 1px;
 }
 
-/* Kustomisasi Input File agar terlihat seperti drop zone */
-.custom-file-input {
-    padding: 0.8rem;
-    border: 2px dashed #dee2e6;
-    background-color: #f8f9fa;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.custom-file-input:hover, .custom-file-input:focus {
-    border-color: #0d6efd;
-    background-color: #fff;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
-}
-
-[data-bs-theme="dark"] .custom-file-input {
-    background-color: #2b3035;
-    border-color: #495057;
-    color: #e9ecef;
-}
-[data-bs-theme="dark"] .custom-file-input:hover {
-    border-color: #0d6efd;
-    background-color: #343a40;
-}
-
-/* --- SECTION 2: OVERVIEW PAGE --- */
-#overviewSection .card-header {
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-/* Styling untuk kotak detail file (Raw Data & Patch Report) */
-.file-detail-card {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Efek hover pada kotak file */
-.file-detail-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-color: #adb5bd;
-}
-
-[data-bs-theme="dark"] .file-detail-card {
-    background-color: #212529;
-    border-color: #495057;
-}
-
-/* Area placeholder konten (teks abu-abu) */
-.content-placeholder {
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    padding: 15px;
-    min-height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #e9ecef;
-    font-style: italic;
-    color: #6c757d;
-}
-
-[data-bs-theme="dark"] .content-placeholder {
-    background-color: #2b3035;
-    border-color: #343a40;
-    color: #adb5bd;
-}
+/* --- DETAILED SECTION --- */
+#detailedSection .card { border-top: 4px solid #198754; }
